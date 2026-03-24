@@ -142,7 +142,7 @@ module RvvFrontEnd#(parameter N = 4,
     inst_config_state[0].xrm = RVVXRM'(vxrm_i);
     inst_config_state[0].xsat = vxsat_i;
 `ifdef ZVE32F_ON
-    inst_config_state[0].frm = frm_i;
+    inst_config_state[0].frm = RVFRM'(frm_i);
 `endif  // ZVE32F_ON
     for (int i = 0; i < N; i++) begin
       inst_config_state[i+1] = inst_config_state[i];
@@ -332,8 +332,9 @@ module RvvFrontEnd#(parameter N = 4,
       config_state_q.xrm <= RNU;
       config_state_q.xsat <= 0;
 `ifdef ZVE32F_ON
-      config_state_q.frm <= 0;
-`endif  // ZVE32F_ON
+      config_state_q.frm <= RVFRM'('0);
+`endif
+  // ZVE32F_ON
       config_state_q.sew <= SEW8;
       config_state_q.lmul <= LMUL1;
     end else begin

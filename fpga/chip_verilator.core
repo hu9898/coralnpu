@@ -28,6 +28,7 @@ filesets:
       - com.google.coralnpu:fpga:display_dpi:0.1
       - com.google.coralnpu:fpga:gpio_dpi:0.1
       - coralnpuv2:ip:hm01b0_model:0.1
+      - com.google.coralnpu:fpga:s25fl512s_dpi:0.1
     files:
       - rtl/chip_verilator.sv
     file_type: systemVerilogSource
@@ -50,6 +51,11 @@ parameters:
     description: Path to ROM
     default: ""
     paramtype: vlogparam
+  BootAddr:
+    datatype: int
+    description: "PC reset value. 0 for ITCM, 0x10000000 for ROM boot."
+    default: 0
+    paramtype: vlogparam
 
 targets:
   default: &default_target
@@ -65,6 +71,7 @@ targets:
     parameters:
       - ClockFrequencyMhz
       - MemInitFile
+      - BootAddr
     tools:
       verilator:
         mode: cc

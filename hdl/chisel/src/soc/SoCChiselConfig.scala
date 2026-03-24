@@ -61,6 +61,12 @@ case class GPIOModuleParameters(
   width: Int
 ) extends ModuleParameters
 
+/** Parameters for the DMA engine module. */
+case class DmaParameters(
+  hostDataBits: Int,
+  deviceDataBits: Int
+) extends ModuleParameters
+
 
 /**
  * Defines the parameters for a Chisel module to be instantiated within the subsystem.
@@ -125,6 +131,7 @@ class SoCChiselConfig(itcmSize: MemorySize, dtcmSize: MemorySize) {
         ExternalPort("wfi",    Bool, Out, "io.wfi"),
         ExternalPort("irq",    Bool, In,  "io.irq"),
         ExternalPort("te",     Bool, In,  "io.te"),
+        ExternalPort("boot_addr", Logic(32), In, "io.boot_addr"),
         ExternalPort("dm_req_valid", Bool, In, "io.dm.req.valid"),
         ExternalPort("dm_req_ready", Bool, Out, "io.dm.req.ready"),
         ExternalPort("dm_req_bits_address", Logic(32), In, "io.dm.req.bits.address"),
@@ -170,6 +177,27 @@ class SoCChiselConfig(itcmSize: MemorySize, dtcmSize: MemorySize) {
         ExternalPort("gpio_o",    Logic(8), Out, "io.gpio_o"),
         ExternalPort("gpio_en_o", Logic(8), Out, "io.gpio_en_o"),
         ExternalPort("gpio_i",    Logic(8), In,  "io.gpio_i")
+      )
+    ),
+    ChiselModuleConfig(
+      name = "dma",
+      moduleClass = "bus.DmaEngine",
+      params = DmaParameters(hostDataBits = 128, deviceDataBits = 32),
+      hostConnections = Map("io.tl_host" -> "dma"),
+      deviceConnections = Map("io.tl_device" -> "dma"),
+      externalPorts = Seq.empty
+    ),
+    ChiselModuleConfig(
+      name = "spi_master_flash",
+      moduleClass = "bus.SpiMaster",
+      params = SpiMasterParameters(lsuDataBits = 32),
+      deviceConnections = Map("io.tl" -> "spi_master_flash"),
+      externalPorts = Seq(
+        ExternalPort("spim_flash_sclk",  Bool, Out, "io.spi.sclk"),
+        ExternalPort("spim_flash_csb",   Bool, Out, "io.spi.csb"),
+        ExternalPort("spim_flash_mosi",  Bool, Out, "io.spi.mosi"),
+        ExternalPort("spim_flash_miso",  Bool, In,  "io.spi.miso"),
+        ExternalPort("spim_flash_clk_i", Clk,  In,  "io.spi_clk_i")
       )
     )
   )

@@ -33,6 +33,7 @@ class CoreTlul(p: Parameters, coreModuleName: String) extends RawModule {
         val fault = Output(Bool())
         val wfi = Output(Bool())
         val irq = Input(Bool())
+        val boot_addr = Input(UInt(32.W))
         val te = Input(Bool())
 
         val dm = new DebugModuleIO(p)
@@ -47,6 +48,7 @@ class CoreTlul(p: Parameters, coreModuleName: String) extends RawModule {
     coreAxi.io.aresetn := io.rst_ni
     coreAxi.io.te := io.te
     coreAxi.io.irq := io.irq
+    coreAxi.io.boot_addr := io.boot_addr
     io.wfi := coreAxi.io.wfi
     io.fault := coreAxi.io.fault
     io.halted := coreAxi.io.halted
@@ -55,14 +57,8 @@ class CoreTlul(p: Parameters, coreModuleName: String) extends RawModule {
     hostBridge.io.axi <> coreAxi.io.axi_master
     deviceBridge.io.axi <> coreAxi.io.axi_slave
 
-    val host_req_intg_gen = withClockAndReset(io.clk, (!io.rst_ni.asBool).asAsyncReset) {
-        Module(new RequestIntegrityGen(tlul_p))
-    }
-    io.tl_host.a.valid := hostBridge.io.tl_a.valid
-    hostBridge.io.tl_a.ready := io.tl_host.a.ready
-    host_req_intg_gen.io.a_i := hostBridge.io.tl_a.bits
-    host_req_intg_gen.io.a_i.user.instr_type := 9.U // MuBi4False
-    io.tl_host.a.bits := host_req_intg_gen.io.a_o
+    // Host bridge (shared between ibus and dbus)
+    io.tl_host.a <> hostBridge.io.tl_a
     hostBridge.io.tl_d <> io.tl_host.d
 
     val device_rsp_intg_gen = withClockAndReset(io.clk, (!io.rst_ni.asBool).asAsyncReset) {
